@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tapoカメラ導入チェックリスト</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+    .progress-bar { transition: width 0.8s ease-out; }
+    .task-card { transition: all 0.2s ease; }
+    .task-card:hover { transform: translateY(-1px); }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-blue-100">
+
+<div id="app" class="p-4 md:p-8 max-w-3xl mx-auto"></div>
+
+<script>
+const STORAGE_KEY = 'tapo-checklist-v1';
+
+const initialTaskData = [
+  {
+    id: 1, phase: 1,
+    title: 'カメラ本体 (Tapo C410) のご購入',
+    completed: false,
+    description: 'バッテリー駆動の防犯カメラです。必要台数をお手配ください。',
+    links: [{ label: '商品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }]
+  },
+  {
+    id: 2, phase: 1,
+    title: 'ソーラーパネル (Tapo A201) のご購入',
+    completed: false,
+    description: '屋外設置の場合は必須です。',
+    isOptional: true,
+    links: [{ label: '製品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }]
+  },
+  {
+    id: 3, phase: 1,
+    title: '適切なmicroSDカードのご準備',
+    completed: false,
+    description: '4GB〜512GB。※SAMSUNG/TOPESEL製は故障の原因となるため使用禁止です。',
+    isCritical: true,
+    links: [{ label: '互換性の詳細を確認', url: 'https://www.tp-link.com/support/faq/3048/' }]
+  },
+  {
+    id: 4, phase: 1,
+    title: '施工会社様へのご依頼・お手配',
+    completed: false,
+    description: '設置工事が必要な場合は、以下の提携先または任意の業者様へご連絡ください。',
+    inquiryLinks: [
+      { label: '株式会社大志 お問い合わせ', url: 'mailto:capital.design.chiba@gmail.com', icon: 'Mail' },
+      { label: '株式会社MarkAnt お問い合わせ', url: 'https://www.markant.jp/', icon: 'Globe' }
+    ]
+  },
+  {
+    id: 5, phase: 2,
+    title: 'Tapoアプリのインストール',
+    completed: false,
+    description: 'お使いのスマートフォンのストアからアプリをインストールしてください。',
+    links: [
+      { label: 'iOS (App Store)', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009', isApp: true },
+      { label: 'Android (Google Play)', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot', isApp: true }
+    ]
+  },
+  {
+    id: 6, phase: 2,
+    title: 'Wi-Fi環境のご確認',
+    completed: false,
+    description: '2.4GHz帯、WPA/WPA2、DHCP設定が有効であることをご確認ください。'
+  },
+  {
+    id: 7, phase: 2,
+    title: 'デバイスの登録・セットアップ',
+    completed: false,
+    description: 'アプリの指示に従い、カメラをネットワークに接続してください。',
+    links: [{ label: 'セットアップ手順を確認', url: 'https://www.tapo.com/jp/faq/51/' }]
+  },
+  {
+    id: 8, phase: 3,
+    title: 'TapoCare サービスのご契約',
+    completed: false,
+    description: 'クラウド保存をご利用になる場合は、こちらから手順をご確認の上、ご契約ください。',
+    links: [{ label: 'ご契約方法を確認', url: 'https://www.tp-link.com/jp/support/faq/3257/' }]
+  },
+  {
+    id: 9, phase: 3,
+    title: '管理権限の共有（ご案内後）',
+    completed: false,
+    description: '契約締結後、弊社よりご案内したタイミングで下記手順に沿って実施してください。',
+    isConditional: true,
+    links: [{ label: '共有手順を確認', url: 'https://www.tp-link.com/jp/support/faq/2613/' }]
+  }
+];
+
+// --- State ---
+let tasks = loadTasks();
+
+function loadTasks() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return initialTaskData.map(t => {
+      const s = saved.find(x => x.id === t.id);
+      return s ? { ...t, completed: s.completed } : t;
+    });
+  } catch { return initialTaskData.map(t => ({ ...t })); }
+}
+
+function saveTasks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks.map(t => ({ id: t.id, completed: t.completed }))));
+}
+
+function toggleTask(id) {
+  tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+  saveTasks();
+  render();
+}
+
+// --- Render helpers ---
+function icon(name, cls = '', size = 16) {
+  return `<i data-lucide="${name}" class="${cls}" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle;"></i>`;
+}
+
+function taskCardClass(task) {
+  if (task.completed) return 'bg-green-50 border-green-200 opacity-80';
+  if (task.isConditional) return 'bg-blue-50/30 border-blue-100';
+  if (task.isCritical) return 'bg-amber-50 border-amber-200 shadow-sm';
+  if (task.isOptional) return 'bg-gray-50 border-gray-100 border-dashed';
+  return 'bg-white border-gray-100 hover:border-blue-200 shadow-sm';
+}
+
+function renderBadges(task) {
+  if (task.completed) return '';
+  let badges = '';
+  if (task.isCritical) badges += `<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('alert-triangle','text-red-600',10)} 重要</span>`;
+  if (task.isConditional) badges += `<span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('bell','text-blue-600',10)} ご案内後</span>`;
+  if (task.isOptional) badges += `<span class="bg-gray-200 text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('help-circle','text-gray-500',10)} 任意</span>`;
+  return badges;
+}
+
+function renderInquiryLinks(task) {
+  if (!task.inquiryLinks || task.completed) return '';
+  const links = task.inquiryLinks.map(l => `
+    <a href="${l.url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
+       class="flex items-center justify-between px-3 py-2 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 text-[11px] font-bold text-gray-700 shadow-sm">
+      <span class="flex items-center gap-2">${icon(l.icon === 'Mail' ? 'mail' : 'globe', 'text-blue-500', 14)} ${l.label}</span>
+      ${icon('external-link','text-gray-300',12)}
+    </a>`).join('');
+  return `
+    <div class="ml-10 mt-2 p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-2">
+      <p class="font-bold flex items-center gap-1 text-gray-400 uppercase tracking-tight text-[10px]">${icon('wrench','text-gray-400',12)} お問い合わせ先</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${links}</div>
+    </div>`;
+}
+
+function renderActionLinks(task) {
+  if (!task.links || task.completed) return '';
+  const links = task.links.map(l => {
+    const btnClass = task.isOptional ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-blue-600 text-white hover:bg-blue-700';
+    const ico = (l.isApp || task.id === 5) ? icon('smartphone','',14) : icon('external-link','',12);
+    return `<a href="${l.url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
+      class="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-lg shadow-sm ${btnClass}">${ico} ${l.label}</a>`;
+  }).join('');
+  return `<div class="ml-10 mt-2 flex flex-wrap gap-2">${links}</div>`;
+}
+
+function renderTaskCard(task) {
+  const checkIcon = task.completed
+    ? `<span class="text-green-500 shrink-0 mt-1">${icon('check-circle','text-green-500',24)}</span>`
+    : `<span class="${task.isConditional ? 'text-blue-200' : task.isOptional ? 'text-gray-300' : 'text-gray-400'} shrink-0 mt-1">${icon('circle','',24)}</span>`;
+  const titleClass = task.completed ? 'text-green-700' : 'text-gray-800';
+  const descClass = task.completed ? 'text-green-600/70' : 'text-gray-500';
+
+  return `
+    <div class="task-card flex flex-col gap-2 p-4 rounded-2xl border-2 mb-3 ${taskCardClass(task)}" data-id="${task.id}">
+      <div class="flex items-start gap-4 cursor-pointer" onclick="toggleTask(${task.id})">
+        ${checkIcon}
+        <div class="flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-bold ${titleClass}">${task.title}</span>
+            ${renderBadges(task)}
+          </div>
+          <p class="text-sm mt-1 leading-relaxed ${descClass}">${task.description}</p>
+        </div>
+      </div>
+      ${renderInquiryLinks(task)}
+      ${renderActionLinks(task)}
+    </div>`;
+}
+
+function renderSection(phase, label, iconName, colorClass, borderClass) {
+  const phaseTasks = tasks.filter(t => t.phase === phase);
+  return `
+    <div class="mb-8">
+      <div class="flex items-center gap-2 mb-4 p-2 border-b-2 ${borderClass} ${colorClass} font-bold text-xl uppercase tracking-tighter">
+        ${icon(iconName, colorClass, 24)} ${label}
+      </div>
+      ${phaseTasks.map(renderTaskCard).join('')}
+    </div>`;
+}
+
+function render() {
+  const completed = tasks.filter(t => t.completed).length;
+  const total = tasks.length;
+  const progress = Math.round((completed / total) * 100);
+
+  const html = `
+    <!-- ヘッダー -->
+    <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm mb-8 border border-gray-200 relative overflow-hidden">
+      <div class="absolute top-0 right-0 p-4">
+        <span class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full text-green-500 bg-green-50">
+          ${icon('cloud','text-green-500',12)} ローカル保存済
+        </span>
+      </div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 class="text-2xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
+            ${icon('shield-check','text-blue-600',28)} Tapoカメラ導入チェックリスト
+          </h1>
+          <p class="text-gray-500 mt-2 font-medium flex items-center gap-2">
+            ${icon('user-check','text-blue-400',16)} ホスト様用 進捗管理シート
+          </p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center min-w-[140px]">
+          <div class="text-[10px] font-black text-gray-400 mb-1 tracking-widest uppercase">Achievement</div>
+          <div class="flex items-center gap-3 justify-center">
+            <div class="w-20 h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+              <div class="h-full bg-blue-500 progress-bar rounded-full" style="width:${progress}%"></div>
+            </div>
+            <span class="text-2xl font-black text-blue-600 leading-none">${progress}%</span>
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1">${completed} / ${total} 完了</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 重要警告 -->
+    <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-r-2xl mb-8 flex items-start gap-4 shadow-sm fade-in">
+      <div class="bg-red-500 p-1.5 rounded-lg shrink-0">
+        ${icon('alert-triangle','text-white',20)}
+      </div>
+      <div class="text-sm">
+        <h3 class="font-bold text-red-900">microSDカードの厳重警告</h3>
+        <p class="text-red-800 mt-1 leading-relaxed">
+          <strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは、互換性の問題によりカードおよび本体を破損する恐れがあるため使用を禁止します。
+        </p>
+      </div>
+    </div>
+
+    ${renderSection(1, 'Step 1: 物品のご準備・工事', 'shopping-cart', 'text-blue-600', 'border-blue-200')}
+    ${renderSection(2, 'Step 2: アプリ設定・設置', 'smartphone', 'text-purple-600', 'border-purple-200')}
+    ${renderSection(3, 'Step 3: 運用・管理の開始', 'settings', 'text-emerald-600', 'border-emerald-200')}
+
+    <!-- 公式サポートリンク -->
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mt-12 mb-20">
+      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        ${icon('info','text-gray-400',20)} 公式サポートリンク
+      </h2>
+      <div class="grid grid-cols-1 gap-3">
+        <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-between p-4 rounded-xl border border-gray-50 bg-gray-50 hover:bg-blue-50 hover:border-blue-100 text-sm font-medium text-gray-600 hover:text-blue-700 transition-all hover:translate-x-1">
+          Tapoカメラに関するよくある質問
+          ${icon('external-link','',14)}
+        </a>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('app').innerHTML = html;
+  lucide.createIcons();
+}
+
+// 初回レンダリング
+render();
+</script>
+</body>
+</html>
