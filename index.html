@@ -4,199 +4,243 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tapoカメラ導入チェックリスト</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide Core (安定動作のためコア版を使用) -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans JP', sans-serif; }
-        .progress-transition { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .lucide { vertical-align: middle; }
+        body {
+            font-family: 'Noto Sans JP', -apple-system, sans-serif;
+            background: #f0f4f8;
+            color: #1e293b;
+        }
+        .progress-bar { transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover { transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
+        .card-hover:hover { transform: translateY(-1px); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        /**
-         * Lucideアイコンを表示するための安全なコンポーネント
-         */
-        const Icon = ({ name, size = 20, className = "" }) => {
+        const Icon = ({ name, size = 18, className = "" }) => {
             useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-            }, [name]);
-
-            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+                if (window.lucide) window.lucide.createIcons();
+            });
+            return <i data-lucide={name} style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }} className={className}></i>;
         };
 
         const initialTaskData = [
-            { id: 1, phase: 1, title: 'カメラ本体 (Tapo C410) のご購入', completed: false, description: 'バッテリー駆動の防犯カメラです。必要台数をお手配ください。', links: [{ label: '商品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }] },
-            { id: 2, phase: 1, title: 'ソーラーパネル (Tapo A201) のご購入', completed: false, description: '屋外設置の場合は必須です。屋内設置のみの場合は任意となります。', isOptional: true, links: [{ label: '製品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }] },
-            { id: 3, phase: 1, title: '適切なmicroSDカードのご準備', completed: false, description: '4GB〜512GB。※SAMSUNG/TOPESEL製は故障の原因となるため使用禁止です。', isCritical: true, links: [{ label: '互換性の詳細を確認', url: 'https://www.tp-link.com/support/faq/3048/' }] },
-            { id: 4, phase: 1, title: '施工会社様へのご依頼・お手配', completed: false, description: '設置工事が必要な場合は、以下の提携先または任意の業者様へご連絡ください。', inquiryLinks: [{ label: '株式会社大志 お問い合わせ', url: 'mailto:capital.design.chiba@gmail.com', icon: 'mail' }, { label: '株式会社MarkAnt お問い合わせ', url: 'https://www.markant.jp/', icon: 'globe' }] },
-            { id: 5, phase: 2, title: 'Tapoアプリのインストール', completed: false, description: 'スマートフォンのストアからアプリをインストールしてください。', links: [{ label: 'iOS (App Store)', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009' }, { label: 'Android (Google Play)', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot' }] },
-            { id: 6, phase: 2, title: 'Wi-Fi環境のご確認', completed: false, description: '2.4GHz帯、WPA/WPA2、DHCP設定が有効であることをご確認ください。' },
-            { id: 7, phase: 2, title: 'デバイスの登録・セットアップ', completed: false, description: 'アプリの指示に従い、カメラをネットワークに接続してください。', links: [{ label: 'セットアップ手順を確認', url: 'https://www.tapo.com/jp/faq/51/' }] },
-            { id: 8, phase: 3, title: 'TapoCare サービスのご契約（必須）', completed: false, description: 'クラウドサービスをご利用いただくため、契約が必須となります。', links: [{ label: 'ご契約方法を確認', url: 'https://www.tp-link.com/jp/support/faq/3257/' }] },
-            { id: 9, phase: 3, title: '管理権限の共有（ご案内後）', completed: false, description: '契約締結後、弊社よりご案内したタイミングで実施してください。', isConditional: true, links: [{ label: '共有手順を確認', url: 'https://www.tp-link.com/jp/support/faq/2613/' }] }
+            { id: 1, phase: 1, title: 'カメラ本体 (Tapo C410) のご購入', completed: false,
+              description: 'バッテリー駆動の防犯カメラです。必要台数をお手配ください。',
+              links: [{ label: '商品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }] },
+            { id: 2, phase: 1, title: 'ソーラーパネル (Tapo A201) のご購入', completed: false,
+              description: '屋外設置の場合は必須です。屋内設置のみの場合は任意となります。', isOptional: true,
+              links: [{ label: '製品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }] },
+            { id: 3, phase: 1, title: '適切なmicroSDカードのご準備', completed: false,
+              description: '4GB〜512GB。※SAMSUNG/TOPESEL製は故障の原因となるため使用禁止です。', isCritical: true,
+              links: [{ label: '互換性の詳細を確認', url: 'https://www.tp-link.com/support/faq/3048/' }] },
+            { id: 4, phase: 1, title: '施工会社様へのご依頼・お手配', completed: false,
+              description: '設置工事が必要な場合は、以下の提携先または任意の業者様へご連絡ください。',
+              inquiryLinks: [
+                { label: '株式会社大志 お問い合わせ', url: 'mailto:capital.design.chiba@gmail.com', icon: 'mail' },
+                { label: '株式会社MarkAnt お問い合わせ', url: 'https://www.markant.jp/', icon: 'globe' }
+              ]},
+            { id: 5, phase: 2, title: 'Tapoアプリのインストール', completed: false,
+              description: 'スマートフォンのストアからアプリをインストールしてください。',
+              links: [
+                { label: 'iOS (App Store)', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009' },
+                { label: 'Android (Google Play)', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot' }
+              ]},
+            { id: 6, phase: 2, title: 'Wi-Fi環境のご確認', completed: false,
+              description: '2.4GHz帯、WPA/WPA2、DHCP設定が有効であることをご確認ください。' },
+            { id: 7, phase: 2, title: 'デバイスの登録・セットアップ', completed: false,
+              description: 'アプリの指示に従い、カメラをネットワークに接続してください。',
+              links: [{ label: 'セットアップ手順を確認', url: 'https://www.tapo.com/jp/faq/51/' }] },
+            { id: 8, phase: 3, title: 'TapoCare サービスのご契約（必須）', completed: false,
+              description: 'クラウドサービスをご利用いただくため、契約が必須となります。',
+              links: [{ label: 'ご契約方法を確認', url: 'https://www.tp-link.com/jp/support/faq/3257/' }] },
+            { id: 9, phase: 3, title: '管理権限の共有（ご案内後）', completed: false,
+              description: '契約締結後、弊社よりご案内したタイミングで実施してください。', isConditional: true,
+              links: [{ label: '共有手順を確認', url: 'https://www.tp-link.com/jp/support/faq/2613/' }] }
         ];
+
+        const STEP_CONFIG = {
+            1: { icon: 'shopping-cart', label: '物品のご準備・工事',  color: 'text-blue-500',   border: 'border-blue-200',   bg: 'bg-blue-50' },
+            2: { icon: 'smartphone',    label: 'アプリ設定・設置',    color: 'text-indigo-400', border: 'border-indigo-200', bg: 'bg-indigo-50' },
+            3: { icon: 'settings',      label: '運用・管理の開始',    color: 'text-slate-400',  border: 'border-slate-200',  bg: 'bg-slate-50' },
+        };
 
         const App = () => {
             const [tasks, setTasks] = useState(() => {
-                const saved = localStorage.getItem('tapo_checklist_data_v1.6');
-                return saved ? JSON.parse(saved) : initialTaskData;
+                try {
+                    const saved = JSON.parse(localStorage.getItem('tapo_checklist_v2') || '[]');
+                    return initialTaskData.map(t => {
+                        const s = saved.find(x => x.id === t.id);
+                        return s ? { ...t, completed: s.completed } : t;
+                    });
+                } catch { return initialTaskData.map(t => ({ ...t })); }
             });
 
             useEffect(() => {
-                localStorage.setItem('tapo_checklist_data_v1.6', JSON.stringify(tasks));
+                localStorage.setItem('tapo_checklist_v2', JSON.stringify(tasks.map(t => ({ id: t.id, completed: t.completed }))));
                 if (window.lucide) window.lucide.createIcons();
             }, [tasks]);
 
             const toggleTask = (id) => {
-                setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+                setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
             };
 
-            const progress = Math.round((tasks.filter(t => t.completed).length / tasks.length) * 100);
+            const completed = tasks.filter(t => t.completed).length;
+            const progress = Math.round((completed / tasks.length) * 100);
 
             return (
-                <div className="max-w-3xl mx-auto p-4 md:p-8 min-h-screen">
-                    {/* ヘッダー */}
-                    <header className="bg-white rounded-3xl p-6 md:p-8 shadow-sm mb-8 border border-slate-200">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="max-w-2xl mx-auto px-4 py-8 md:py-12">
+
+                    {/* ── ヘッダー ── */}
+                    <header className="bg-white rounded-2xl px-6 py-5 mb-6 shadow-sm border border-slate-200">
+                        <div className="flex items-start justify-between gap-4">
                             <div>
-                                <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
-                                    <Icon name="shield-check" size={28} className="text-blue-600" /> Tapo導入チェックリスト
+                                <h1 className="text-xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
+                                    <Icon name="shield-check" size={22} className="text-blue-500" />
+                                    Tapoカメラ導入チェックリスト
                                 </h1>
-                                <p className="text-slate-500 mt-2 font-medium flex items-center gap-2 text-sm">
-                                    <Icon name="user-check" size={16} className="text-blue-400" /> ホスト様用 進捗管理シート
+                                <p className="text-slate-400 mt-1 text-xs font-medium flex items-center gap-1.5">
+                                    <Icon name="user-check" size={13} className="text-slate-300" />
+                                    ホスト様用 進捗管理シート
                                 </p>
                             </div>
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex-shrink-0 min-w-[150px]">
-                                <div className="text-[10px] font-black text-slate-400 mb-2 tracking-widest uppercase text-center">Achievement</div>
-                                <div className="flex items-center gap-3 justify-center">
-                                    <div className="w-20 h-2.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
-                                        <div className="h-full bg-blue-600 progress-transition" style={{ width: `${progress}%` }}></div>
+                            <div className="text-right shrink-0">
+                                <div className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-1.5">Achievement</div>
+                                <div className="flex items-center gap-2 justify-end">
+                                    <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-blue-500 progress-bar rounded-full" style={{ width: `${progress}%` }}></div>
                                     </div>
-                                    <span className="text-2xl font-black text-blue-600 leading-none">{progress}%</span>
+                                    <span className="text-lg font-black text-blue-600 leading-none w-10 text-right">{progress}%</span>
                                 </div>
+                                <div className="text-[11px] text-slate-400 mt-1">{completed} / {tasks.length} 完了</div>
                             </div>
                         </div>
                     </header>
 
-                    {/* 重要警告 */}
-                    <div className="bg-red-50 border-l-4 border-red-500 p-5 rounded-r-2xl mb-8 flex gap-4 items-start shadow-sm">
-                        <Icon name="alert-triangle" size={24} className="text-red-500 shrink-0" />
+                    {/* ── 警告 ── */}
+                    <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-8 flex gap-3 items-start">
+                        <Icon name="alert-triangle" size={18} className="text-red-400 shrink-0 mt-0.5" />
                         <div className="text-sm">
-                            <p className="font-bold text-red-900 mb-1 text-base">microSDカードの厳重警告</p>
-                            <p className="text-red-800 leading-relaxed font-medium">
-                                <strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは使用禁止です。
-                                互換性の問題により、カードおよび本体を破損する恐れがあります。
+                            <p className="font-bold text-red-800 mb-0.5">microSDカードの厳重警告</p>
+                            <p className="text-red-700 leading-relaxed text-xs font-medium">
+                                <strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは使用禁止です。互換性の問題により、カードおよび本体を破損する恐れがあります。
                             </p>
                         </div>
                     </div>
 
-                    {/* ステップセクション */}
-                    {[1, 2, 3].map(phase => (
-                        <div key={phase} className="mb-12">
-                            <h2 className={`text-xl font-black mb-6 flex items-center gap-2 border-b-2 pb-3 ${
-                                phase === 1 ? 'border-blue-200 text-blue-700' : 
-                                phase === 2 ? 'border-indigo-200 text-indigo-700' : 
-                                'border-emerald-200 text-emerald-700'
-                            }`}>
-                                <Icon name={phase === 1 ? "shopping-cart" : phase === 2 ? "smartphone" : "settings"} size={24} />
-                                STEP {phase}: {phase === 1 ? '物品のご準備・工事' : phase === 2 ? 'アプリ設定・設置' : '運用・管理の開始'}
-                            </h2>
-                            {tasks.filter(t => t.phase === phase).map(task => (
-                                <div key={task.id} 
-                                     onClick={() => toggleTask(task.id)}
-                                     className={`group p-5 rounded-2xl border-2 mb-4 cursor-pointer transition-all duration-300 ${
-                                         task.completed 
-                                         ? 'bg-emerald-50 border-emerald-200 opacity-80 shadow-inner' 
-                                         : task.isCritical 
-                                           ? 'bg-amber-50 border-amber-300 shadow-sm' 
-                                           : task.isConditional
-                                             ? 'bg-blue-50 border-blue-200'
-                                             : task.isOptional
-                                               ? 'bg-slate-50 border-slate-200 border-dashed'
-                                               : 'bg-white border-slate-100 hover:border-blue-300 hover:shadow-md'
-                                     }`}>
-                                    <div className="flex gap-4">
-                                        <div className="mt-0.5 shrink-0 select-none">
-                                            {task.completed 
-                                                ? <Icon name="check-circle" size={24} className="text-emerald-500" /> 
-                                                : <Icon name="circle" size={24} className={task.isConditional ? "text-blue-300" : task.isOptional ? "text-slate-300" : "text-slate-300"} />
-                                            }
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                <span className={`font-bold text-lg leading-tight ${task.completed ? 'text-emerald-800' : 'text-slate-800'}`}>{task.title}</span>
-                                                {task.isCritical && !task.completed && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">重要</span>}
-                                                {task.isOptional && !task.completed && <span className="bg-slate-400 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">任意</span>}
-                                                {task.isConditional && !task.completed && <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">案内後</span>}
-                                            </div>
-                                            <p className={`text-sm leading-relaxed mt-1 ${task.completed ? 'text-emerald-600/70' : 'text-slate-500 font-medium'}`}>{task.description}</p>
-                                            
-                                            {/* お問い合わせボタン */}
-                                            {!task.completed && task.inquiryLinks && (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4" onClick={e => e.stopPropagation()}>
-                                                    {task.inquiryLinks.map((l, i) => (
-                                                        <a key={i} href={l.url} target="_blank" className="flex items-center justify-between px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-xs text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition-all shadow-sm">
-                                                            <span className="flex items-center gap-2">
-                                                                <Icon name={l.icon === 'mail' ? 'mail' : 'globe'} size={14} className="text-blue-500" />
-                                                                {l.label}
-                                                            </span>
-                                                            <Icon name="external-link" size={12} className="text-slate-300" />
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            )}
+                    {/* ── ステップ ── */}
+                    {[1, 2, 3].map(phase => {
+                        const cfg = STEP_CONFIG[phase];
+                        return (
+                            <section key={phase} className="mb-10">
+                                <div className={`flex items-center gap-2 mb-4 pb-2.5 border-b ${cfg.border}`}>
+                                    <Icon name={cfg.icon} size={18} className={cfg.color} />
+                                    <span className={`text-xs font-black tracking-widest uppercase ${cfg.color}`}>Step {phase}</span>
+                                    <span className="text-sm font-bold text-slate-600 ml-1">{cfg.label}</span>
+                                </div>
 
-                                            {/* アクションボタン */}
-                                            {!task.completed && task.links && (
-                                                <div className="flex flex-wrap gap-2 mt-4" onClick={e => e.stopPropagation()}>
-                                                    {task.links.map((l, i) => (
-                                                        <a key={i} href={l.url} target="_blank" className={`inline-flex items-center gap-2 text-white text-xs px-5 py-2.5 rounded-xl font-bold transition-all shadow-md ${task.isOptional ? 'bg-slate-500 hover:bg-slate-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                                                            {task.id === 5 ? <Icon name="smartphone" size={14} /> : <Icon name="external-link" size={14} />}
-                                                            {l.label}
-                                                        </a>
-                                                    ))}
+                                {tasks.filter(t => t.phase === phase).map(task => (
+                                    <div key={task.id}
+                                         onClick={() => toggleTask(task.id)}
+                                         className={`card-hover rounded-xl border mb-3 cursor-pointer ${
+                                             task.completed
+                                                 ? 'bg-slate-50 border-slate-200 opacity-70'
+                                                 : task.isCritical
+                                                     ? 'bg-amber-50 border-amber-200'
+                                                     : task.isConditional
+                                                         ? 'bg-blue-50/60 border-blue-200'
+                                                         : task.isOptional
+                                                             ? 'bg-white border-dashed border-slate-200'
+                                                             : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-md'
+                                         }`}>
+                                        <div className="flex gap-3 p-4">
+                                            <div className="shrink-0 mt-0.5">
+                                                {task.completed
+                                                    ? <Icon name="check-circle" size={20} className="text-blue-400" />
+                                                    : <Icon name="circle" size={20} className="text-slate-300" />
+                                                }
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                                    <span className={`font-bold text-sm leading-snug ${task.completed ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
+                                                        {task.title}
+                                                    </span>
+                                                    {task.isCritical && !task.completed &&
+                                                        <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">重要</span>}
+                                                    {task.isOptional && !task.completed &&
+                                                        <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full font-bold">任意</span>}
+                                                    {task.isConditional && !task.completed &&
+                                                        <span className="bg-blue-100 text-blue-500 text-[10px] px-2 py-0.5 rounded-full font-bold">案内後</span>}
                                                 </div>
-                                            )}
+                                                <p className={`text-xs leading-relaxed ${task.completed ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                    {task.description}
+                                                </p>
+
+                                                {/* お問い合わせリンク */}
+                                                {!task.completed && task.inquiryLinks && (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3" onClick={e => e.stopPropagation()}>
+                                                        {task.inquiryLinks.map((l, i) => (
+                                                            <a key={i} href={l.url} target="_blank" rel="noopener noreferrer"
+                                                               className="flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors">
+                                                                <span className="flex items-center gap-1.5">
+                                                                    <Icon name={l.icon === 'mail' ? 'mail' : 'globe'} size={13} className="text-blue-400" />
+                                                                    {l.label}
+                                                                </span>
+                                                                <Icon name="external-link" size={11} className="text-slate-300" />
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* アクションボタン */}
+                                                {!task.completed && task.links && (
+                                                    <div className="flex flex-wrap gap-2 mt-3" onClick={e => e.stopPropagation()}>
+                                                        {task.links.map((l, i) => (
+                                                            <a key={i} href={l.url} target="_blank" rel="noopener noreferrer"
+                                                               className={`inline-flex items-center gap-1.5 text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors shadow-sm ${task.isOptional ? 'bg-slate-400 hover:bg-slate-500' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                                                                <Icon name={task.id === 5 ? 'smartphone' : 'external-link'} size={12} />
+                                                                {l.label}
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                    
-                    <footer className="text-center text-xs text-slate-400 pb-24 mt-12 space-y-6">
-                        <div className="flex justify-center gap-6">
-                            <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" className="text-blue-500 font-bold hover:underline flex items-center gap-2">
-                                <Icon name="info" size={14} /> Tapoカメラに関するよくある質問 (FAQ)
-                            </a>
-                        </div>
-                        <div className="space-y-2">
-                            <p className="flex items-center justify-center gap-2">
-                                <Icon name="cloud" size={12} /> チェック状況はお使いのブラウザに自動保存されます
+                                ))}
+                            </section>
+                        );
+                    })}
+
+                    {/* ── フッター ── */}
+                    <footer className="text-center text-xs text-slate-400 pb-20 mt-8 space-y-4">
+                        <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" rel="noopener noreferrer"
+                           className="inline-flex items-center gap-1.5 text-blue-500 font-bold hover:underline">
+                            <Icon name="info" size={13} /> Tapoカメラに関するよくある質問 (FAQ)
+                        </a>
+                        <div className="space-y-1 mt-2">
+                            <p className="flex items-center justify-center gap-1.5 text-slate-400">
+                                <Icon name="cloud" size={11} /> チェック状況はお使いのブラウザに自動保存されます
                             </p>
-                            <p className="opacity-50 tracking-widest font-black uppercase text-[10px]">Tapo Management Sheet v1.6</p>
+                            <p className="opacity-40 tracking-widest font-black uppercase text-[9px]">Tapo Management Sheet v2.0</p>
                         </div>
                     </footer>
                 </div>
             );
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
