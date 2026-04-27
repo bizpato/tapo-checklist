@@ -88,6 +88,10 @@
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-full { grid-column: 1 / -1; }
         .form-label { display: block; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px; }
+        .form-label .required { color: var(--danger); margin-left: 3px; }
+        .form-input.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(234,67,60,0.1); }
+        .form-hint { font-size: 11px; font-weight: 700; color: var(--danger); margin-top: 6px; display: none; }
+        .form-hint.show { display: block; }
         .form-input {
             width: 100%; background: #f8fafc; border: 1px solid #e2e8f0;
             border-radius: 16px; padding: 14px 18px;
@@ -320,19 +324,19 @@
         <div class="card-body">
             <div class="form-grid">
                 <div class="form-full">
-                    <label class="form-label">物件名</label>
+                    <label class="form-label">物件名<span class="required">*</span></label>
                     <input type="text" class="form-input" id="f_property" placeholder="例：渋谷マンション301">
                 </div>
                 <div>
-                    <label class="form-label">ご契約者様名</label>
+                    <label class="form-label">ご契約者様名<span class="required">*</span></label>
                     <input type="text" class="form-input" id="f_subscriber" placeholder="個人名または会社名">
                 </div>
                 <div>
-                    <label class="form-label">担当者名</label>
+                    <label class="form-label">担当者名<span class="required">*</span></label>
                     <input type="text" class="form-input" id="f_staff" placeholder="ご担当者様名">
                 </div>
                 <div class="form-full">
-                    <label class="form-label">連絡先メールアドレス</label>
+                    <label class="form-label">連絡先メールアドレス<span class="required">*</span></label>
                     <input type="email" class="form-input" id="f_email" placeholder="example@minpaku.com">
                 </div>
             </div>
@@ -515,13 +519,25 @@ function updateProgress() {
     document.getElementById('progressPct').textContent = pct + '%';
 }
 
+// ===== FORM VALIDATION =====
+function isFormComplete() {
+    return !!(formData.property && formData.subscriber && formData.staff && formData.email);
+}
+
 // ===== STICKY BAR =====
 function updateStickyBar() {
     const isInitialDone = TASKS.filter(t => t.id < 9).every(t => completed[t.id]);
     const isFinalDone = !!completed[9];
+    const formOk = isFormComplete();
     const bar = document.getElementById('stickyBar');
     const btnI = document.getElementById('btnInitial');
     const btnF = document.getElementById('btnFinal');
+    if (!formOk) {
+        bar.classList.remove('visible');
+        btnI.style.display = 'none';
+        btnF.style.display = 'none';
+        return;
+    }
     if (isFinalDone) {
         bar.classList.add('visible');
         btnI.style.display = 'none';
@@ -543,7 +559,11 @@ function bindFormInputs() {
     Object.entries(fields).forEach(([id, key]) => {
         const el = document.getElementById(id);
         el.value = formData[key] || '';
-        el.addEventListener('input', () => { formData[key] = el.value; saveState(); });
+        el.addEventListener('input', () => {
+            formData[key] = el.value.trim();
+            saveState();
+            updateStickyBar();
+        });
     });
 }
 
@@ -637,10 +657,11 @@ function updateSendBtn() {
     const btn = document.getElementById('btnSend');
     if (!btn) return;
     if (currentModal === 'initial') {
-        const ok = formData.property && formData.tpLinkId && formData.password;
+        const ok = isFormComplete() && formData.tpLinkId && formData.password;
         btn.disabled = !ok;
     } else {
-        btn.disabled = false;
+        const ok = isFormComplete();
+        btn.disabled = !ok;
     }
 }
 
