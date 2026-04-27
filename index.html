@@ -82,8 +82,23 @@
 
         const App = () => {
             const [tasks, setTasks] = useState(() => {
-                const saved = localStorage.getItem('tapo_checklist_data_v2.6');
-                return saved ? JSON.parse(saved) : initialTaskData;
+                try {
+                    const saved = localStorage.getItem('tapo_checklist_data_v2.6');
+                    if (!saved) return initialTaskData.map(t => ({ ...t }));
+                    const parsed = JSON.parse(saved);
+                    // 保存データにidが揃っているか検証し、不整合なら初期データにフォールバック
+                    if (!Array.isArray(parsed) || parsed.length !== initialTaskData.length) {
+                        return initialTaskData.map(t => ({ ...t }));
+                    }
+                    // 初期データをベースに、保存済みのcompletedだけを上書きする（構造は常に最新を維持）
+                    return initialTaskData.map(t => {
+                        const s = parsed.find(x => x.id === t.id);
+                        return s ? { ...t, completed: !!s.completed } : { ...t };
+                    });
+                } catch (e) {
+                    localStorage.removeItem('tapo_checklist_data_v2.6');
+                    return initialTaskData.map(t => ({ ...t }));
+                }
             });
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [reportType, setReportType] = useState('initial');
@@ -99,12 +114,12 @@
             }, [tasks, formData]);
 
             const toggleTask = (id) => {
-                setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+                setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
             };
 
             const progress = Math.round((tasks.filter(t => t.completed).length / tasks.length) * 100);
             const isInitialDone = useMemo(() => tasks.filter(t => t.id < 9).every(t => t.completed), [tasks]);
-            const isFinalDone = useMemo(() => tasks.find(t => t.id === 9).completed, [tasks]);
+            const isFinalDone = useMemo(() => { const t = tasks.find(t => t.id === 9); return t ? t.completed : false; }, [tasks]);
             const totalCameras = (parseInt(formData.indoorCount) || 0) + (parseInt(formData.outdoorCount) || 0);
 
             const openReportModal = (type) => {
