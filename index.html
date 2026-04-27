@@ -4,423 +4,668 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tapoカメラ 導入ガイド</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide React (ESM) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
-        
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
-            --brand-main: #215387;
-            --brand-main-light: #3174b5;
+            --brand: #215387;
+            --brand-light: #3174b5;
             --brand-base: #eef8ff;
             --brand-accent: #d7f0ff;
-            --brand-danger: #ea433c;
-            --brand-text: #1e293b;
+            --danger: #ea433c;
+            --text: #1e293b;
         }
 
-        body { 
-            font-family: 'Noto Sans JP', sans-serif; 
-            background-color: #f8fafc;
-            color: var(--brand-text);
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: #f8fafc;
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 120px;
         }
-        
-        .progress-transition { transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1); }
-        .lucide { vertical-align: middle; }
-        
-        input:focus { border-color: var(--brand-main); outline: none; box-shadow: 0 0 0 3px rgba(33, 83, 135, 0.1); }
 
-        .glass-header {
-            background: rgba(255, 255, 255, 0.9);
+        /* Header */
+        .header {
+            position: sticky; top: 0; z-index: 30;
+            background: rgba(255,255,255,0.92);
             backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e2e8f0;
         }
+        .header-inner {
+            max-width: 896px; margin: 0 auto;
+            padding: 20px 16px;
+            display: flex; flex-wrap: wrap; align-items: center;
+            justify-content: space-between; gap: 12px;
+        }
+        .header-logo {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .logo-icon {
+            background: var(--brand); padding: 10px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(33,83,135,0.2);
+        }
+        .logo-icon svg { width: 24px; height: 24px; color: white; display: block; }
+        .logo-title { font-size: 20px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; }
+        .logo-sub { font-size: 11px; font-weight: 700; color: #94a3b8; margin-top: 2px; }
+        .progress-bar-wrap {
+            display: flex; align-items: center; gap: 12px;
+            background: white; padding: 10px 20px; border-radius: 16px;
+            border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            min-width: 200px;
+        }
+        .progress-label { font-size: 10px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.15em; white-space: nowrap; }
+        .progress-track { flex: 1; height: 8px; background: #f8fafc; border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand-light)); border-radius: 99px; transition: width 0.7s cubic-bezier(0.65,0,0.35,1); }
+        .progress-pct { font-size: 14px; font-weight: 900; color: var(--brand); min-width: 36px; text-align: right; }
 
-        .sticky-report-bar {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 -10px 25px -5px rgba(33, 83, 135, 0.1);
+        /* Main */
+        .main { max-width: 896px; margin: 0 auto; padding: 24px 16px; }
+
+        /* Card */
+        .card {
+            background: white; border-radius: 28px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            overflow: hidden; margin-bottom: 24px;
+        }
+        .card-header {
+            background: #f8fafc; padding: 20px 28px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-header-title {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 15px; font-weight: 900; color: #475569;
+        }
+        .card-header-title svg { width: 18px; height: 18px; color: var(--brand); }
+        .card-header-badge { font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em; }
+        .card-body { padding: 28px; }
+
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-full { grid-column: 1 / -1; }
+        .form-label { display: block; font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px; }
+        .form-input {
+            width: 100%; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 16px; padding: 14px 18px;
+            font-size: 14px; font-weight: 700; color: #334155;
+            font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(33,83,135,0.1); }
+
+        /* Warning */
+        .warning {
+            background: #fff4f4; border-left: 4px solid var(--danger);
+            border-radius: 0 20px 20px 0; padding: 20px 24px;
+            display: flex; gap: 16px; align-items: flex-start;
+            margin-bottom: 32px;
+            border-top: 1px solid #fee2e2; border-right: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2;
+        }
+        .warning-icon { background: var(--danger); padding: 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(234,67,60,0.25); }
+        .warning-icon svg { width: 20px; height: 20px; color: white; display: block; }
+        .warning-title { font-size: 15px; font-weight: 900; color: #7f1d1d; margin-bottom: 4px; }
+        .warning-text { font-size: 13px; font-weight: 500; color: #b91c1c; line-height: 1.6; }
+
+        /* Step */
+        .step-section { margin-bottom: 32px; }
+        .step-header { display: flex; align-items: center; gap: 14px; padding: 0 4px; margin-bottom: 16px; }
+        .step-badge {
+            background: var(--brand-accent); color: var(--brand);
+            padding: 6px 14px; border-radius: 99px;
+            font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase;
+            border: 1px solid #bfdbfe;
+        }
+        .step-title { font-size: 17px; font-weight: 900; color: #334155; }
+
+        /* Task Item */
+        .task-item {
+            background: white; border-radius: 28px; border: 1px solid #e2e8f0;
+            padding: 24px 28px; margin-bottom: 14px;
+            display: flex; gap: 20px; cursor: pointer;
+            transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .task-item:hover { border-color: var(--brand); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(33,83,135,0.08); }
+        .task-item.completed { background: #f0f9ff; border-color: #bfdbfe; opacity: 0.65; }
+        .task-item.completed:hover { transform: none; }
+        .task-item.critical { background: #fffcf0; border-color: #fde68a; }
+
+        .task-checkbox { flex-shrink: 0; margin-top: 2px; }
+        .checkbox-empty {
+            width: 32px; height: 32px; border-radius: 12px;
+            border: 2px solid #e2e8f0; background: #f8fafc;
+            transition: border-color 0.2s;
+        }
+        .task-item:hover .checkbox-empty { border-color: var(--brand); }
+        .checkbox-done {
+            width: 32px; height: 32px; border-radius: 12px;
+            background: #10b981;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+        }
+        .checkbox-done svg { width: 16px; height: 16px; color: white; display: block; }
+
+        .task-content { flex: 1; min-width: 0; }
+        .task-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .task-title { font-size: 16px; font-weight: 900; color: #1e293b; }
+        .task-item.completed .task-title { color: #94a3b8; text-decoration: line-through; }
+        .badge { font-size: 9px; font-weight: 900; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .badge-critical { background: var(--danger); color: white; }
+        .badge-optional { background: #94a3b8; color: white; }
+        .badge-conditional { background: #0097e1; color: white; }
+        .task-desc { font-size: 13px; color: #64748b; font-weight: 500; line-height: 1.6; margin-bottom: 16px; }
+        .task-item.completed .task-desc { color: #cbd5e1; }
+
+        /* Buttons */
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--brand); color: white;
+            padding: 10px 20px; border-radius: 16px;
+            font-size: 12px; font-weight: 900; text-decoration: none;
+            transition: background 0.2s; border: none; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(33,83,135,0.15);
+        }
+        .btn-primary:hover { background: #1a416a; }
+        .btn-primary svg { width: 13px; height: 13px; display: block; }
+        .btn-outline {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: white; color: #475569;
+            padding: 10px 18px; border-radius: 16px;
+            font-size: 12px; font-weight: 700; text-decoration: none;
+            border: 1px solid #e2e8f0; transition: border-color 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .btn-outline:hover { border-color: var(--brand); }
+        .btn-outline svg { width: 14px; height: 14px; color: var(--brand); display: block; }
+
+        /* Footer */
+        .footer { margin-top: 48px; border-top: 1px solid #f1f5f9; padding: 40px 16px 80px; text-align: center; }
+        .footer-links { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
+        .footer-version { font-size: 10px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.3em; }
+
+        /* Sticky Report Bar */
+        .sticky-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(255,255,255,0.97);
             backdrop-filter: blur(12px);
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -8px 24px rgba(33,83,135,0.08);
+            padding: 16px; z-index: 40;
+            display: none;
         }
-
-        .modal-overlay { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(6px); }
-        
-        .card-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        .sticky-bar.visible { display: block; }
+        .sticky-bar-inner { max-width: 896px; margin: 0 auto; }
+        .sticky-bar-hint { text-align: center; font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .sticky-bar-hint svg { width: 13px; height: 13px; color: var(--brand); }
+        .btn-report {
+            width: 100%; padding: 18px; border-radius: 20px;
+            font-size: 16px; font-weight: 900; color: white;
+            border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: transform 0.15s, box-shadow 0.15s;
         }
+        .btn-report:hover { transform: translateY(-2px); }
+        .btn-report:active { transform: scale(0.98); }
+        .btn-report.initial { background: linear-gradient(90deg, var(--brand), var(--brand-light)); box-shadow: 0 8px 24px rgba(33,83,135,0.25); }
+        .btn-report.final { background: linear-gradient(90deg, #0097e1, #007ab7); box-shadow: 0 8px 24px rgba(0,151,225,0.25); }
+        .btn-report svg { width: 22px; height: 22px; display: block; }
 
-        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 50;
+            background: rgba(15,23,42,0.55); backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: white; width: 100%; max-width: 480px;
+            border-radius: 40px; overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+            border: 1px solid #f1f5f9;
+        }
+        .modal-header {
+            background: #f8fafc; padding: 24px 32px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-title { font-size: 18px; font-weight: 900; color: var(--brand); display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .modal-title svg { width: 22px; height: 22px; display: block; }
+        .modal-close { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: flex; }
+        .modal-close:hover { color: #475569; }
+        .modal-close svg { width: 24px; height: 24px; display: block; }
+        .modal-body { padding: 28px 32px; max-height: 70vh; overflow-y: auto; }
+        .modal-section { margin-bottom: 24px; }
+        .modal-section-label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px; }
+        .modal-info-box { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 24px; padding: 18px 22px; }
+        .modal-info-name { font-size: 15px; font-weight: 900; color: #1e293b; }
+        .modal-info-sub { font-size: 12px; font-weight: 700; color: #94a3b8; margin-top: 6px; }
+        .count-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .count-box { background: white; border: 1px solid #f1f5f9; border-radius: 20px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .count-label { font-size: 10px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; }
+        .count-input {
+            width: 100%; background: #f8fafc; border: 1px solid #f1f5f9;
+            border-radius: 12px; padding: 10px; text-align: center;
+            font-size: 20px; font-weight: 900; color: var(--brand);
+            font-family: inherit; outline: none;
+        }
+        .total-box { background: var(--brand); border-radius: 20px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .total-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; }
+        .total-value { font-size: 24px; font-weight: 900; }
+        .total-unit { font-size: 12px; font-weight: 700; opacity: 0.8; margin-left: 4px; }
+        .cred-box { background: white; border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .cred-item { margin-bottom: 14px; }
+        .cred-item:last-child { margin-bottom: 0; }
+        .final-msg { background: var(--brand-base); border: 1px solid #bfdbfe; border-radius: 24px; padding: 24px; text-align: center; }
+        .final-msg p { font-size: 14px; font-weight: 700; color: var(--brand); line-height: 1.8; }
+        .btn-send {
+            width: 100%; padding: 20px; border-radius: 24px;
+            font-size: 16px; font-weight: 900; color: white;
+            border: none; cursor: pointer; margin-top: 8px;
+            transition: opacity 0.2s;
+        }
+        .btn-send:disabled { background: #e2e8f0 !important; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+        .btn-send.initial { background: var(--brand); box-shadow: 0 8px 24px rgba(33,83,135,0.2); }
+        .btn-send.final { background: #0097e1; box-shadow: 0 8px 24px rgba(0,151,225,0.2); }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-full { grid-column: 1; }
+            .header-inner { padding: 14px 12px; }
+            .progress-bar-wrap { min-width: unset; }
+            .card-body { padding: 20px; }
+            .task-item { padding: 18px 20px; }
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+<!-- Header -->
+<div class="header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <div class="logo-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            </div>
+            <div>
+                <div class="logo-title">Tapoカメラ 導入ガイド</div>
+                <div class="logo-sub">民泊管理バンク・ホスト様用タスク管理シート</div>
+            </div>
+        </div>
+        <div class="progress-bar-wrap">
+            <div class="progress-label">Task Completion</div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div class="progress-pct" id="progressPct">0%</div>
+        </div>
+    </div>
+</div>
 
-        // SVGアイコンをインラインで定義（lucide依存を完全除去してクラッシュを防止）
-        const ICONS = {
-          'shield-check': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
-          'user': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-          'alert-triangle': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
-          'check': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-          'external-link': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
-          'mail': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
-          'globe': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-          'info': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
-          'send': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
-          'check-square': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
-          'x': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-          'help-circle': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        };
+<!-- Main -->
+<div class="main">
 
-        const Icon = ({ name, size = 20, className = "" }) => {
-            const svg = ICONS[name] || ICONS['info'];
-            return (
-                <span className={`inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size }}>
-                    {React.cloneElement(svg, { width: size, height: size, style: { display: 'block' } })}
-                </span>
-            );
-        };
-
-        const initialTaskData = [
-            { id: 1, phase: 1, title: 'カメラ本体 (Tapo C410) のご購入', completed: false, description: 'バッテリー駆動の防犯カメラです。必要台数をお手配ください。', links: [{ label: '公式サイトで確認', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }] },
-            { id: 2, phase: 1, title: 'ソーラーパネル (Tapo A201) のご購入', completed: false, description: '屋外設置の場合は必須です。', isOptional: true, links: [{ label: '公式サイトで確認', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }] },
-            { id: 3, phase: 1, title: '適切なmicroSDカードのご準備', completed: false, description: '4GB〜512GB。※SAMSUNG/TOPESEL製は故障の原因となるため使用禁止です。', isCritical: true, links: [{ label: '互換性の詳細を確認', url: 'https://www.tp-link.com/support/faq/3048/' }] },
-            { id: 4, phase: 1, title: '施工会社様へのご依頼・お手配', completed: false, description: '設置工事が必要な場合は、以下の提携先または任意の業者様へご連絡ください。', inquiryLinks: [{ label: '株式会社大志（メール）', url: 'mailto:capital.design.chiba@gmail.com', icon: 'mail' }, { label: '株式会社MarkAnt（Web）', url: 'https://www.markant.jp/', icon: 'globe' }] },
-            { id: 5, phase: 2, title: 'Tapoアプリのインストール', completed: false, description: 'スマートフォンのストアからアプリをインストールしてください。', links: [{ label: 'iOS', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009' }, { label: 'Android', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot' }] },
-            { id: 6, phase: 2, title: 'Wi-Fi環境のご確認', completed: false, description: '2.4GHz帯、WPA/WPA2、DHCP設定が有効であることをご確認ください。' },
-            { id: 7, phase: 2, title: 'デバイスの登録・セットアップ', completed: false, description: 'アプリの指示に従い、カメラをネットワークに接続してください。', links: [{ label: 'セットアップ手順を確認', url: 'https://www.tapo.com/jp/faq/51/' }] },
-            { id: 8, phase: 3, title: 'TapoCare サービスのご契約（必須）', completed: false, description: 'クラウドサービスをご利用いただくため、契約が必須となります。', links: [{ label: 'ご契約方法を確認', url: 'https://www.tp-link.com/jp/support/faq/3257/' }] },
-            { id: 9, phase: 3, title: '管理権限の共有（弊社ご案内後に実施）', completed: false, description: '契約締結後、弊社よりご案内したタイミングで実施してください。', isConditional: true, links: [{ label: '共有手順を確認', url: 'https://www.tp-link.com/jp/support/faq/2613/' }] }
-        ];
-
-        const App = () => {
-            const [tasks, setTasks] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('tapo_checklist_data_v2.6');
-                    if (!saved) return initialTaskData.map(t => ({ ...t }));
-                    const parsed = JSON.parse(saved);
-                    // 保存データにidが揃っているか検証し、不整合なら初期データにフォールバック
-                    if (!Array.isArray(parsed) || parsed.length !== initialTaskData.length) {
-                        return initialTaskData.map(t => ({ ...t }));
-                    }
-                    // 初期データをベースに、保存済みのcompletedだけを上書きする（構造は常に最新を維持）
-                    return initialTaskData.map(t => {
-                        const s = parsed.find(x => x.id === t.id);
-                        return s ? { ...t, completed: !!s.completed } : { ...t };
-                    });
-                } catch (e) {
-                    localStorage.removeItem('tapo_checklist_data_v2.6');
-                    return initialTaskData.map(t => ({ ...t }));
-                }
-            });
-            const [isModalOpen, setIsModalOpen] = useState(false);
-            const [reportType, setReportType] = useState('initial');
-            const [formData, setFormData] = useState(() => {
-                const saved = localStorage.getItem('tapo_form_data_v2.6');
-                return saved ? JSON.parse(saved) : { propertyName: '', subscriberName: '', staffName: '', email: '', tpLinkId: '', password: '', indoorCount: 0, outdoorCount: 0 };
-            });
-
-            useEffect(() => {
-                localStorage.setItem('tapo_checklist_data_v2.6', JSON.stringify(tasks));
-                localStorage.setItem('tapo_form_data_v2.6', JSON.stringify(formData));
-            }, [tasks, formData]);
-
-            const toggleTask = (id) => {
-                setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-            };
-
-            const progress = Math.round((tasks.filter(t => t.completed).length / tasks.length) * 100);
-            const isInitialDone = useMemo(() => tasks.filter(t => t.id < 9).every(t => t.completed), [tasks]);
-            const isFinalDone = useMemo(() => { const t = tasks.find(t => t.id === 9); return t ? t.completed : false; }, [tasks]);
-            const totalCameras = (parseInt(formData.indoorCount) || 0) + (parseInt(formData.outdoorCount) || 0);
-
-            const openReportModal = (type) => {
-                setReportType(type);
-                setIsModalOpen(true);
-            };
-
-            const handleSendEmail = () => {
-                const isFinal = reportType === 'final';
-                const subjectText = isFinal 
-                    ? `【権限共有完了】Tapoカメラ管理権限付与完了（${formData.propertyName}）`
-                    : `【導入完了報告】Tapoカメラ設置完了（${formData.propertyName}）`;
-                
-                const statusMessage = isFinal
-                    ? `Tapoカメラの管理権限の付与設定（共有設定）が完了しました。`
-                    : `Tapoカメラの導入について、クラウドサービス（TapoCare）の契約まで完了しましたので報告いたします。`;
-
-                const subject = encodeURIComponent(subjectText);
-                let bodyContent = `民泊管理バンク 担当者様\n\n` +
-                    `お世話になっております。\n` +
-                    `${statusMessage}\n\n` +
-                    `■ホスト様情報\n` +
-                    `物件名: ${formData.propertyName}\n` +
-                    `契約者名: ${formData.subscriberName}\n` +
-                    `担当者名: ${formData.staffName}\n` +
-                    `連絡先メールアドレス: ${formData.email}\n\n`;
-
-                if (!isFinal) {
-                    bodyContent += `■設置台数\n` +
-                        `屋内カメラ: ${formData.indoorCount}台\n` +
-                        `屋外カメラ(ソーラー): ${formData.outdoorCount}台\n` +
-                        `合計台数: ${totalCameras}台\n\n` +
-                        `■アカウント情報\n` +
-                        `TP-Link ID (Email): ${formData.tpLinkId}\n` +
-                        `パスワード: ${formData.password}\n\n`;
-                }
-
-                bodyContent += `ご確認のほど、よろしくお願いいたします。`;
-                window.location.href = `mailto:capital.design.chiba@gmail.com?subject=${subject}&body=${encodeURIComponent(bodyContent)}`;
-                setIsModalOpen(false);
-            };
-
-            return (
-                <div className="min-h-screen pb-32">
-                    {/* Sticky Header */}
-                    <div className="sticky top-0 z-30 glass-header border-b border-slate-200">
-                        <div className="max-w-4xl mx-auto px-4 py-5 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-[#215387] p-2.5 rounded-2xl shadow-lg shadow-blue-900/10">
-                                    <Icon name="shield-check" size={24} className="text-white" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-none">Tapoカメラ 導入ガイド</h1>
-                                    <p className="text-slate-400 text-[10px] md:text-xs font-bold mt-1 tracking-wider">民泊管理バンク・ホスト様用タスク管理シート</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-white px-5 py-2.5 rounded-2xl border border-slate-100 shadow-sm min-w-[220px]">
-                                <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Task Completion</div>
-                                <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-[#215387] to-[#3174b5] progress-transition" style={{ width: `${progress}%` }}></div>
-                                </div>
-                                <span className="text-[#215387] font-black text-sm w-10 text-right leading-none">{progress}%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-10 mt-4">
-                        
-                        {/* Host Info Card */}
-                        <div className="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden card-shadow">
-                            <div className="bg-[#f8fafc] px-8 py-5 border-b border-slate-100 flex justify-between items-center">
-                                <h2 className="text-slate-700 font-black text-base flex items-center gap-2">
-                                    <Icon name="user" size={18} className="text-[#215387]" /> ホスト様情報
-                                </h2>
-                                <span className="text-slate-400 text-[9px] font-bold tracking-widest uppercase">Required Info</span>
-                            </div>
-                            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="md:col-span-2">
-                                    <label className="block text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest leading-none">物件名</label>
-                                    <input type="text" value={formData.propertyName} onChange={e => setFormData({...formData, propertyName: e.target.value})} className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-4 font-bold text-slate-700 transition-all" placeholder="例：渋谷マンション301" />
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest leading-none">ご契約者様名</label>
-                                    <input type="text" value={formData.subscriberName} onChange={e => setFormData({...formData, subscriberName: e.target.value})} className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-4 font-bold text-slate-700 transition-all" placeholder="個人名または会社名" />
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest leading-none">担当者名</label>
-                                    <input type="text" value={formData.staffName} onChange={e => setFormData({...formData, staffName: e.target.value})} className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-4 font-bold text-slate-700 transition-all" placeholder="ご担当者様名" />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-[11px] font-black text-slate-400 mb-2 uppercase tracking-widest leading-none">連絡先メールアドレス</label>
-                                    <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-4 font-bold text-slate-700 transition-all" placeholder="example@minpaku.com" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* microSD Warning */}
-                        <div className="bg-[#fff4f4] border-l-4 border-[#ea433c] p-6 rounded-r-[32px] flex gap-5 items-start shadow-sm border border-red-50">
-                            <div className="bg-[#ea433c] p-1.5 rounded-lg shadow-lg shadow-red-500/20 shrink-0">
-                                <Icon name="alert-triangle" size={20} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="font-black text-red-900 mb-1 text-base tracking-tight leading-tight">microSDカード 厳重警告</p>
-                                <p className="text-red-700 leading-relaxed text-[13px] font-medium mt-1">
-                                    <strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは使用禁止です。互換性の問題により、機器を故障させる原因となります。
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Tasks */}
-                        {[1, 2, 3].map(phase => (
-                            <div key={phase} className="space-y-4">
-                                <div className="flex items-center gap-4 px-2">
-                                    <span className="bg-[#d7f0ff] text-[#215387] px-4 py-1.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase shadow-sm border border-blue-100">Step 0{phase}</span>
-                                    <h3 className="font-black text-slate-700 text-base md:text-lg tracking-tight">
-                                        {phase === 1 ? '準備・機材調達・工事' : phase === 2 ? 'アプリ設定・カメラ設置' : '運用・管理の開始'}
-                                    </h3>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4">
-                                    {tasks.filter(t => t.phase === phase).map(task => (
-                                        <div key={task.id} 
-                                             onClick={() => toggleTask(task.id)}
-                                             className={`group p-6 md:p-8 transition-all duration-300 cursor-pointer flex gap-6 rounded-[32px] border card-shadow ${
-                                                 task.completed 
-                                                 ? 'bg-[#f0f9ff]/50 border-blue-50 opacity-60' 
-                                                 : task.isCritical 
-                                                   ? 'bg-[#fffcf0] border-amber-200' 
-                                                   : 'bg-white border-slate-100 hover:border-[#215387] hover:translate-y-[-2px]'
-                                             }`}>
-                                            <div className="shrink-0 mt-1">
-                                                {task.completed 
-                                                    ? <div className="bg-emerald-500 rounded-xl p-1.5 shadow-md shadow-emerald-500/20 transition-all scale-110"><Icon name="check" size={16} className="text-white" /></div>
-                                                    : <div className="border-2 border-slate-100 w-8 h-8 rounded-xl transition-all group-hover:border-[#215387] bg-slate-50/50"></div>
-                                                }
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex flex-wrap items-center gap-3 mb-2">
-                                                    <span className={`font-black text-base md:text-lg tracking-tight ${task.completed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{task.title}</span>
-                                                    {task.isCritical && !task.completed && <span className="bg-[#ea433c] text-white text-[9px] px-2.5 py-1 rounded-lg font-black uppercase tracking-widest shadow-sm">重要</span>}
-                                                    {task.isOptional && !task.completed && <span className="bg-slate-400 text-white text-[9px] px-2.5 py-1 rounded-lg font-black uppercase tracking-widest shadow-sm">任意</span>}
-                                                    {task.isConditional && !task.completed && <span className="bg-[#0097e1] text-white text-[9px] px-2.5 py-1 rounded-lg font-black uppercase tracking-widest shadow-sm">案内待ち</span>}
-                                                </div>
-                                                <p className={`text-[13px] leading-relaxed mb-5 ${task.completed ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{task.description}</p>
-                                                
-                                                {!task.completed && (task.links || task.inquiryLinks) && (
-                                                    <div className="flex flex-wrap gap-3" onClick={e => e.stopPropagation()}>
-                                                        {(task.inquiryLinks || []).map((l, i) => (
-                                                            <a key={i} href={l.url} target="_blank" className="flex items-center gap-2.5 px-5 py-3 bg-white border border-slate-100 rounded-2xl font-bold text-[11px] text-slate-600 hover:border-[#215387] hover:bg-slate-50 transition-all card-shadow">
-                                                                <Icon name={l.icon === 'mail' ? 'mail' : 'globe'} size={14} className="text-[#215387]" /> {l.label}
-                                                            </a>
-                                                        ))}
-                                                        {(task.links || []).map((l, i) => (
-                                                            <a key={i} href={l.url} target="_blank" className="inline-flex items-center gap-2.5 bg-[#215387] text-white text-[11px] px-6 py-3 rounded-2xl font-black hover:bg-[#1a416a] transition-all shadow-lg shadow-blue-900/10">
-                                                                {l.label} <Icon name="external-link" size={12} />
-                                                            </a>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Footer */}
-                    <footer className="mt-20 border-t border-slate-100 pt-12 pb-24 text-center space-y-6">
-                        <div className="flex justify-center gap-8">
-                            <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" className="text-[#215387] font-black text-xs hover:underline flex items-center gap-2 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
-                                <Icon name="help-circle" size={16} /> Tapoカメラ よくある質問 (FAQ)
-                            </a>
-                        </div>
-                        <p className="text-slate-300 text-[10px] font-black tracking-[0.3em] uppercase">Tapo Deployment Guide v2.6</p>
-                    </footer>
-
-                    {/* Fixed Footer Bar */}
-                    {(isInitialDone || isFinalDone) && (
-                        <div className="fixed bottom-0 left-0 right-0 p-6 sticky-report-bar z-40 animate-in slide-in-from-bottom duration-500 border-t border-slate-100">
-                            <div className="max-w-4xl mx-auto flex flex-col items-center gap-4">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                    <Icon name="info" size={12} className="text-[#215387]" /> 本文を編集せずにそのまま送信してください
-                                </p>
-                                {isFinalDone ? (
-                                    <button 
-                                        onClick={() => openReportModal('final')}
-                                        className="w-full bg-gradient-to-r from-[#0097e1] to-[#007ab7] text-white py-5 rounded-[24px] font-black text-base md:text-lg shadow-xl shadow-blue-500/20 hover:translate-y-[-2px] transition-all flex items-center justify-center gap-4 active:scale-[0.98]"
-                                    >
-                                        <Icon name="check-square" size={24} /> 管理権限の付与完了を報告する
-                                    </button>
-                                ) : isInitialDone && (
-                                    <button 
-                                        onClick={() => openReportModal('initial')}
-                                        className="w-full bg-gradient-to-r from-[#215387] to-[#3174b5] text-white py-5 rounded-[24px] font-black text-base md:text-lg shadow-xl shadow-blue-900/20 hover:translate-y-[-2px] transition-all flex items-center justify-center gap-4 active:scale-[0.98]"
-                                    >
-                                        <Icon name="send" size={24} /> 導入完了を報告する
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Modal */}
-                    {isModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-                            <div className="bg-white w-full max-w-lg rounded-[48px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-100">
-                                <div className="bg-[#f8fafc] px-10 py-7 flex justify-between items-center border-b border-slate-100">
-                                    <h3 className="text-[#215387] font-black text-xl flex items-center gap-3 leading-none uppercase tracking-tight">
-                                        <Icon name="mail" /> {reportType === 'final' ? 'Host Final Report' : 'Host Deployment Report'}
-                                    </h3>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-300 hover:text-slate-600 p-2 leading-none transition-colors">
-                                        <Icon name="x" size={28} />
-                                    </button>
-                                </div>
-                                <div className="p-10 max-h-[75vh] overflow-y-auto scrollbar-thin space-y-8">
-                                    
-                                    <div className="bg-slate-50/50 p-6 rounded-[32px] border border-slate-100">
-                                        <p className="text-[10px] font-black text-slate-300 uppercase mb-3 tracking-widest leading-none">Host & Property Info</p>
-                                        <p className="text-base font-black text-slate-800 leading-tight">{formData.propertyName || "物件名未入力"}</p>
-                                        <p className="text-xs font-bold text-slate-400 mt-2 tracking-wide">{formData.subscriberName} / {formData.staffName}</p>
-                                    </div>
-
-                                    {reportType === 'initial' && (
-                                        <React.Fragment>
-                                            <div className="space-y-5">
-                                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Camera Counts</p>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm">
-                                                        <label className="block text-[10px] font-bold text-slate-400 mb-2 leading-none">屋内台数</label>
-                                                        <input type="number" min="0" value={formData.indoorCount} onChange={e => setFormData({...formData, indoorCount: e.target.value})} className="w-full bg-slate-50/50 border border-slate-100 rounded-xl px-2 py-3 text-center font-black text-lg outline-none text-[#215387]" />
-                                                    </div>
-                                                    <div className="bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm">
-                                                        <label className="block text-[10px] font-bold text-slate-400 mb-2 leading-none">屋外台数</label>
-                                                        <input type="number" min="0" value={formData.outdoorCount} onChange={e => setFormData({...formData, outdoorCount: e.target.value})} className="w-full bg-slate-50/50 border border-slate-100 rounded-xl px-2 py-3 text-center font-black text-lg outline-none text-[#215387]" />
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#215387] p-5 rounded-[24px] flex justify-between items-center text-white shadow-lg shadow-blue-900/20">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Total Cameras</span>
-                                                    <span className="text-2xl font-black">{totalCameras} <span className="text-sm font-bold opacity-80 uppercase ml-1">Unit</span></span>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Account Credentials</p>
-                                                <div className="bg-white border border-slate-100 p-6 rounded-[32px] space-y-5 shadow-sm">
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">TP-Link ID</label>
-                                                        <input type="email" value={formData.tpLinkId} onChange={e => setFormData({...formData, tpLinkId: e.target.value})} className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-4 py-4 font-bold text-slate-700 outline-none" placeholder="example@gmail.com" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Password</label>
-                                                        <input type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-4 py-4 font-bold text-slate-700 outline-none" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </React.Fragment>
-                                    )}
-
-                                    {reportType === 'final' && (
-                                        <div className="p-8 bg-[#eef8ff] rounded-[32px] border border-blue-50">
-                                            <p className="text-sm font-bold text-[#215387] leading-relaxed text-center">
-                                                Tapoカメラの管理権限設定（共有）が<br/>完了したことを弊社へ報告します。
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <button 
-                                        onClick={handleSendEmail}
-                                        disabled={!formData.propertyName || (reportType === 'initial' && (!formData.tpLinkId || !formData.password))}
-                                        className={`w-full py-6 rounded-[28px] font-black shadow-2xl transition-all disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none text-white active:scale-[0.98] ${reportType === 'final' ? 'bg-[#0097e1] shadow-blue-500/20' : 'bg-[#215387] shadow-blue-900/20'}`}
-                                    >
-                                        報告メールを作成する
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+    <!-- Host Info -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-header-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                ホスト様情報
+            </div>
+            <div class="card-header-badge">Required Info</div>
+        </div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-full">
+                    <label class="form-label">物件名</label>
+                    <input type="text" class="form-input" id="f_property" placeholder="例：渋谷マンション301">
                 </div>
-            );
-        };
+                <div>
+                    <label class="form-label">ご契約者様名</label>
+                    <input type="text" class="form-input" id="f_subscriber" placeholder="個人名または会社名">
+                </div>
+                <div>
+                    <label class="form-label">担当者名</label>
+                    <input type="text" class="form-input" id="f_staff" placeholder="ご担当者様名">
+                </div>
+                <div class="form-full">
+                    <label class="form-label">連絡先メールアドレス</label>
+                    <input type="email" class="form-input" id="f_email" placeholder="example@minpaku.com">
+                </div>
+            </div>
+        </div>
+    </div>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    <!-- Warning -->
+    <div class="warning">
+        <div class="warning-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+            <div class="warning-title">microSDカード 厳重警告</div>
+            <div class="warning-text"><strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは使用禁止です。互換性の問題により、機器を故障させる原因となります。</div>
+        </div>
+    </div>
+
+    <!-- Tasks -->
+    <div id="tasksContainer"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" class="btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Tapoカメラ よくある質問 (FAQ)
+            </a>
+        </div>
+        <div class="footer-version">Tapo Deployment Guide v3.0</div>
+    </div>
+</div>
+
+<!-- Sticky Bar -->
+<div class="sticky-bar" id="stickyBar">
+    <div class="sticky-bar-inner">
+        <div class="sticky-bar-hint">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            本文を編集せずにそのまま送信してください
+        </div>
+        <button class="btn-report initial" id="btnInitial" onclick="openModal('initial')" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            導入完了を報告する
+        </button>
+        <button class="btn-report final" id="btnFinal" onclick="openModal('final')" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            管理権限の付与完了を報告する
+        </button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="modalTitle">Host Deployment Report</span>
+            </div>
+            <button class="modal-close" onclick="closeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+// ===== DATA =====
+const TASKS = [
+    { id: 1, phase: 1, title: 'カメラ本体 (Tapo C410) のご購入', desc: 'バッテリー駆動の防犯カメラです。必要台数をお手配ください。', links: [{ label: '公式サイトで確認', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }] },
+    { id: 2, phase: 1, title: 'ソーラーパネル (Tapo A201) のご購入', desc: '屋外設置の場合は必須です。', optional: true, links: [{ label: '公式サイトで確認', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }] },
+    { id: 3, phase: 1, title: '適切なmicroSDカードのご準備', desc: '4GB〜512GB。※SAMSUNG/TOPESEL製は故障の原因となるため使用禁止です。', critical: true, links: [{ label: '互換性の詳細を確認', url: 'https://www.tp-link.com/support/faq/3048/' }] },
+    { id: 4, phase: 1, title: '施工会社様へのご依頼・お手配', desc: '設置工事が必要な場合は、以下の提携先または任意の業者様へご連絡ください。', inquiry: [{ label: '株式会社大志（メール）', url: 'mailto:capital.design.chiba@gmail.com', mail: true }, { label: '株式会社MarkAnt（Web）', url: 'https://www.markant.jp/', mail: false }] },
+    { id: 5, phase: 2, title: 'Tapoアプリのインストール', desc: 'スマートフォンのストアからアプリをインストールしてください。', links: [{ label: 'iOS', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009' }, { label: 'Android', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot' }] },
+    { id: 6, phase: 2, title: 'Wi-Fi環境のご確認', desc: '2.4GHz帯、WPA/WPA2、DHCP設定が有効であることをご確認ください。' },
+    { id: 7, phase: 2, title: 'デバイスの登録・セットアップ', desc: 'アプリの指示に従い、カメラをネットワークに接続してください。', links: [{ label: 'セットアップ手順を確認', url: 'https://www.tapo.com/jp/faq/51/' }] },
+    { id: 8, phase: 3, title: 'TapoCare サービスのご契約（必須）', desc: 'クラウドサービスをご利用いただくため、契約が必須となります。', links: [{ label: 'ご契約方法を確認', url: 'https://www.tp-link.com/jp/support/faq/3257/' }] },
+    { id: 9, phase: 3, title: '管理権限の共有（弊社ご案内後に実施）', desc: '契約締結後、弊社よりご案内したタイミングで実施してください。', conditional: true, links: [{ label: '共有手順を確認', url: 'https://www.tp-link.com/jp/support/faq/2613/' }] }
+];
+const PHASE_NAMES = { 1: '準備・機材調達・工事', 2: 'アプリ設定・カメラ設置', 3: '運用・管理の開始' };
+const STORAGE_KEY = 'tapo_v3_tasks';
+const FORM_KEY = 'tapo_v3_form';
+
+// ===== STATE =====
+let completed = {};
+let formData = { property: '', subscriber: '', staff: '', email: '', tpLinkId: '', password: '', indoor: 0, outdoor: 0 };
+let currentModal = 'initial';
+
+// ===== LOAD =====
+function loadState() {
+    try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        if (s) completed = JSON.parse(s);
+    } catch(e) { completed = {}; }
+    try {
+        const f = localStorage.getItem(FORM_KEY);
+        if (f) formData = { ...formData, ...JSON.parse(f) };
+    } catch(e) {}
+}
+
+// ===== SAVE =====
+function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(e) {}
+    try { localStorage.setItem(FORM_KEY, JSON.stringify(formData)); } catch(e) {}
+}
+
+// ===== ICONS =====
+const SVG = {
+    check: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    extLink: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,
+    mail: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+    globe: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`
+};
+
+// ===== RENDER =====
+function render() {
+    const container = document.getElementById('tasksContainer');
+    let html = '';
+    [1, 2, 3].forEach(phase => {
+        html += `<div class="step-section">
+            <div class="step-header">
+                <span class="step-badge">Step 0${phase}</span>
+                <span class="step-title">${PHASE_NAMES[phase]}</span>
+            </div>`;
+        TASKS.filter(t => t.phase === phase).forEach(task => {
+            const done = !!completed[task.id];
+            const cls = done ? 'completed' : (task.critical ? 'critical' : '');
+            const checkHtml = done
+                ? `<div class="checkbox-done">${SVG.check}</div>`
+                : `<div class="checkbox-empty"></div>`;
+            const badges = !done ? [
+                task.critical ? `<span class="badge badge-critical">重要</span>` : '',
+                task.optional ? `<span class="badge badge-optional">任意</span>` : '',
+                task.conditional ? `<span class="badge badge-conditional">案内待ち</span>` : ''
+            ].join('') : '';
+            let btns = '';
+            if (!done) {
+                if (task.inquiry) {
+                    task.inquiry.forEach(l => {
+                        btns += `<a href="${l.url}" target="_blank" class="btn-outline" onclick="event.stopPropagation()">${l.mail ? SVG.mail : SVG.globe} ${l.label}</a>`;
+                    });
+                }
+                if (task.links) {
+                    task.links.forEach(l => {
+                        btns += `<a href="${l.url}" target="_blank" class="btn-primary" onclick="event.stopPropagation()">${l.label} ${SVG.extLink}</a>`;
+                    });
+                }
+            }
+            html += `<div class="task-item ${cls}" onclick="toggleTask(${task.id})">
+                <div class="task-checkbox">${checkHtml}</div>
+                <div class="task-content">
+                    <div class="task-title-row">
+                        <span class="task-title">${task.title}</span>${badges}
+                    </div>
+                    <div class="task-desc">${task.desc}</div>
+                    ${btns ? `<div class="btn-group">${btns}</div>` : ''}
+                </div>
+            </div>`;
+        });
+        html += `</div>`;
+    });
+    container.innerHTML = html;
+    updateProgress();
+    updateStickyBar();
+}
+
+// ===== TOGGLE =====
+function toggleTask(id) {
+    completed[id] = !completed[id];
+    saveState();
+    render();
+}
+
+// ===== PROGRESS =====
+function updateProgress() {
+    const total = TASKS.length;
+    const done = TASKS.filter(t => completed[t.id]).length;
+    const pct = Math.round(done / total * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// ===== STICKY BAR =====
+function updateStickyBar() {
+    const isInitialDone = TASKS.filter(t => t.id < 9).every(t => completed[t.id]);
+    const isFinalDone = !!completed[9];
+    const bar = document.getElementById('stickyBar');
+    const btnI = document.getElementById('btnInitial');
+    const btnF = document.getElementById('btnFinal');
+    if (isFinalDone) {
+        bar.classList.add('visible');
+        btnI.style.display = 'none';
+        btnF.style.display = 'flex';
+    } else if (isInitialDone) {
+        bar.classList.add('visible');
+        btnI.style.display = 'flex';
+        btnF.style.display = 'none';
+    } else {
+        bar.classList.remove('visible');
+        btnI.style.display = 'none';
+        btnF.style.display = 'none';
+    }
+}
+
+// ===== FORM INPUTS =====
+function bindFormInputs() {
+    const fields = { f_property: 'property', f_subscriber: 'subscriber', f_staff: 'staff', f_email: 'email' };
+    Object.entries(fields).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        el.value = formData[key] || '';
+        el.addEventListener('input', () => { formData[key] = el.value; saveState(); });
+    });
+}
+
+// ===== MODAL =====
+function openModal(type) {
+    currentModal = type;
+    document.getElementById('modalTitle').textContent = type === 'final' ? 'Host Final Report' : 'Host Deployment Report';
+    document.getElementById('modalBody').innerHTML = buildModalBody(type);
+    document.getElementById('modalOverlay').classList.add('open');
+    if (type === 'initial') {
+        bindModalInputs();
+    }
+    updateSendBtn();
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOnBg(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function buildModalBody(type) {
+    const infoHtml = `<div class="modal-section">
+        <div class="modal-section-label">Host &amp; Property Info</div>
+        <div class="modal-info-box">
+            <div class="modal-info-name">${formData.property || '物件名未入力'}</div>
+            <div class="modal-info-sub">${formData.subscriber || ''} / ${formData.staff || ''}</div>
+        </div>
+    </div>`;
+
+    if (type === 'initial') {
+        const total = (parseInt(formData.indoor) || 0) + (parseInt(formData.outdoor) || 0);
+        return infoHtml + `
+        <div class="modal-section">
+            <div class="modal-section-label">Camera Counts</div>
+            <div class="count-grid">
+                <div class="count-box"><div class="count-label">屋内台数</div><input type="number" min="0" class="count-input" id="m_indoor" value="${formData.indoor || 0}"></div>
+                <div class="count-box"><div class="count-label">屋外台数</div><input type="number" min="0" class="count-input" id="m_outdoor" value="${formData.outdoor || 0}"></div>
+            </div>
+            <div class="total-box">
+                <span class="total-label">Total Cameras</span>
+                <span><span class="total-value" id="m_total">${total}</span><span class="total-unit">Unit</span></span>
+            </div>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-label">Account Credentials</div>
+            <div class="cred-box">
+                <div class="cred-item">
+                    <label class="form-label">TP-Link ID</label>
+                    <input type="email" class="form-input" id="m_tplink" value="${formData.tpLinkId || ''}" placeholder="example@gmail.com">
+                </div>
+                <div class="cred-item">
+                    <label class="form-label">Password</label>
+                    <input type="text" class="form-input" id="m_pass" value="${formData.password || ''}">
+                </div>
+            </div>
+        </div>
+        <button class="btn-send initial" id="btnSend" onclick="sendEmail()" disabled>報告メールを作成する</button>`;
+    } else {
+        return infoHtml + `
+        <div class="modal-section">
+            <div class="final-msg"><p>Tapoカメラの管理権限設定（共有）が<br>完了したことを弊社へ報告します。</p></div>
+        </div>
+        <button class="btn-send final" id="btnSend" onclick="sendEmail()">報告メールを作成する</button>`;
+    }
+}
+
+function bindModalInputs() {
+    const indoor = document.getElementById('m_indoor');
+    const outdoor = document.getElementById('m_outdoor');
+    const tplink = document.getElementById('m_tplink');
+    const pass = document.getElementById('m_pass');
+    if (!indoor) return;
+    function updateTotal() {
+        formData.indoor = indoor.value;
+        formData.outdoor = outdoor.value;
+        const t = (parseInt(indoor.value) || 0) + (parseInt(outdoor.value) || 0);
+        document.getElementById('m_total').textContent = t;
+        saveState();
+        updateSendBtn();
+    }
+    indoor.addEventListener('input', updateTotal);
+    outdoor.addEventListener('input', updateTotal);
+    tplink.addEventListener('input', () => { formData.tpLinkId = tplink.value; saveState(); updateSendBtn(); });
+    pass.addEventListener('input', () => { formData.password = pass.value; saveState(); updateSendBtn(); });
+}
+
+function updateSendBtn() {
+    const btn = document.getElementById('btnSend');
+    if (!btn) return;
+    if (currentModal === 'initial') {
+        const ok = formData.property && formData.tpLinkId && formData.password;
+        btn.disabled = !ok;
+    } else {
+        btn.disabled = false;
+    }
+}
+
+function sendEmail() {
+    const isFinal = currentModal === 'final';
+    const subject = isFinal
+        ? `【権限共有完了】Tapoカメラ管理権限付与完了（${formData.property}）`
+        : `【導入完了報告】Tapoカメラ設置完了（${formData.property}）`;
+    const status = isFinal
+        ? 'Tapoカメラの管理権限の付与設定（共有設定）が完了しました。'
+        : 'Tapoカメラの導入について、クラウドサービス（TapoCare）の契約まで完了しましたので報告いたします。';
+    let body = `民泊管理バンク 担当者様\n\nお世話になっております。\n${status}\n\n■ホスト様情報\n物件名: ${formData.property}\n契約者名: ${formData.subscriber}\n担当者名: ${formData.staff}\n連絡先: ${formData.email}\n\n`;
+    if (!isFinal) {
+        const total = (parseInt(formData.indoor) || 0) + (parseInt(formData.outdoor) || 0);
+        body += `■設置台数\n屋内カメラ: ${formData.indoor}台\n屋外カメラ: ${formData.outdoor}台\n合計: ${total}台\n\n■アカウント情報\nTP-Link ID: ${formData.tpLinkId}\nパスワード: ${formData.password}\n\n`;
+    }
+    body += 'ご確認のほど、よろしくお願いいたします。';
+    window.location.href = `mailto:capital.design.chiba@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    closeModal();
+}
+
+// ===== INIT =====
+loadState();
+render();
+bindFormInputs();
+</script>
 </body>
 </html>
