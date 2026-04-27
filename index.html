@@ -700,7 +700,7 @@ function sendEmail() {
         body += `■設置台数\n屋内カメラ: ${formData.indoor}台\n屋外カメラ: ${formData.outdoor}台\n合計: ${total}台\n\n■アカウント情報\nTP-Link ID: ${formData.tpLinkId}\nパスワード: ${formData.password}\n\n`;
     }
     body += 'ご確認のほど、よろしくお願いいたします。';
-    window.location.href = `mailto:capital.design.chiba@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:customer@bizpato.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     closeModal();
 }
 
