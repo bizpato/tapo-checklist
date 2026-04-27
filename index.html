@@ -532,12 +532,6 @@ function updateStickyBar() {
     const bar = document.getElementById('stickyBar');
     const btnI = document.getElementById('btnInitial');
     const btnF = document.getElementById('btnFinal');
-    if (!formOk) {
-        bar.classList.remove('visible');
-        btnI.style.display = 'none';
-        btnF.style.display = 'none';
-        return;
-    }
     if (isFinalDone) {
         bar.classList.add('visible');
         btnI.style.display = 'none';
@@ -561,6 +555,7 @@ function bindFormInputs() {
         el.value = formData[key] || '';
         el.addEventListener('input', () => {
             formData[key] = el.value.trim();
+            if (formData[key]) el.classList.remove('invalid');
             saveState();
             updateStickyBar();
         });
@@ -569,6 +564,32 @@ function bindFormInputs() {
 
 // ===== MODAL =====
 function openModal(type) {
+    // ホスト様情報の必須チェック
+    const missing = [];
+    if (!formData.property) missing.push('物件名');
+    if (!formData.subscriber) missing.push('ご契約者様名');
+    if (!formData.staff) missing.push('担当者名');
+    if (!formData.email) missing.push('連絡先メールアドレス');
+    if (missing.length > 0) {
+        alert('以下のホスト様情報を入力してください。\n\n・' + missing.join('\n・'));
+        // 未入力フィールドをハイライト
+        const fieldMap = { property: 'f_property', subscriber: 'f_subscriber', staff: 'f_staff', email: 'f_email' };
+        Object.entries(fieldMap).forEach(([key, id]) => {
+            const el = document.getElementById(id);
+            if (!formData[key]) {
+                el.classList.add('invalid');
+                el.focus();
+            } else {
+                el.classList.remove('invalid');
+            }
+        });
+        // 最初の未入力フィールドにスクロール
+        const firstEmpty = Object.entries(fieldMap).find(([key]) => !formData[key]);
+        if (firstEmpty) {
+            document.getElementById(firstEmpty[1]).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
     currentModal = type;
     document.getElementById('modalTitle').textContent = type === 'final' ? 'Host Final Report' : 'Host Deployment Report';
     document.getElementById('modalBody').innerHTML = buildModalBody(type);
