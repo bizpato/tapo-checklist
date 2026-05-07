@@ -13,25 +13,11 @@
     .progress-bar { transition: width 0.8s ease-out; }
     .task-card { transition: all 0.2s ease; }
     .task-card:hover { transform: translateY(-1px); }
-    .step-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
-      padding: 2px 10px; border-radius: 999px;
-      text-transform: uppercase;
-    }
-    .reset-btn {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 700;
-      padding: 5px 12px; border-radius: 8px;
-      border: 1.5px solid #fca5a5; color: #ef4444; background: #fff5f5;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .reset-btn:hover { background: #fee2e2; border-color: #ef4444; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen selection:bg-blue-100">
 
-<div id="app" class="p-4 md:p-6 max-w-2xl mx-auto"></div>
+<div id="app" class="p-4 md:p-8 max-w-3xl mx-auto"></div>
 
 <script>
 const STORAGE_KEY = 'tapo-checklist-v1';
@@ -42,7 +28,7 @@ const initialTaskData = [
     title: 'カメラ本体 (Tapo C410) のご購入',
     completed: false,
     description: 'バッテリー駆動の防犯カメラです。必要台数をお手配ください。',
-    links: [{ label: '公式サイトで確認', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }]
+    links: [{ label: '商品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-c410/' }]
   },
   {
     id: 2, phase: 1,
@@ -50,7 +36,7 @@ const initialTaskData = [
     completed: false,
     description: '屋外設置の場合は必須です。',
     isOptional: true,
-    links: [{ label: '公式サイトで確認', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }]
+    links: [{ label: '製品詳細を見る', url: 'https://www.tp-link.com/jp/home-networking/cloud-camera/tapo-a201/' }]
   },
   {
     id: 3, phase: 1,
@@ -66,18 +52,18 @@ const initialTaskData = [
     completed: false,
     description: '設置工事が必要な場合は、以下の提携先または任意の業者様へご連絡ください。',
     inquiryLinks: [
-      { label: '株式会社大志（メール）', url: 'mailto:capital.design.chiba@gmail.com', icon: 'Mail' },
-      { label: '株式会社MarkAnt（Web）', url: 'https://www.markant.jp/', icon: 'Globe' }
+      { label: '株式会社大志 お問い合わせ', url: 'mailto:capital.design.chiba@gmail.com', icon: 'Mail' },
+      { label: '株式会社MarkAnt お問い合わせ', url: 'https://www.markant.jp/', icon: 'Globe' }
     ]
   },
   {
     id: 5, phase: 2,
     title: 'Tapoアプリのインストール',
     completed: false,
-    description: 'スマートフォンのストアからアプリをインストールしてください。',
+    description: 'お使いのスマートフォンのストアからアプリをインストールしてください。',
     links: [
-      { label: 'iOS', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009', isApp: true },
-      { label: 'Android', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot', isApp: true }
+      { label: 'iOS (App Store)', url: 'https://apps.apple.com/jp/app/tp-link-tapo/id1472718009', isApp: true },
+      { label: 'Android (Google Play)', url: 'https://play.google.com/store/apps/details?id=com.tplink.iot', isApp: true }
     ]
   },
   {
@@ -95,16 +81,16 @@ const initialTaskData = [
   },
   {
     id: 8, phase: 3,
-    title: 'TapoCare サービスのご契約（必須）',
+    title: 'TapoCare サービスのご契約',
     completed: false,
-    description: 'クラウドサービスをご利用いただくため、契約が必須となります。',
+    description: 'クラウド保存をご利用になる場合は、こちらから手順をご確認の上、ご契約ください。',
     links: [{ label: 'ご契約方法を確認', url: 'https://www.tp-link.com/jp/support/faq/3257/' }]
   },
   {
     id: 9, phase: 3,
-    title: '管理権限の共有（弊社ご案内後に実施）',
+    title: '管理権限の共有（ご案内後）',
     completed: false,
-    description: '契約締結後、弊社よりご案内したタイミングで実施してください。',
+    description: '契約締結後、弊社よりご案内したタイミングで下記手順に沿って実施してください。',
     isConditional: true,
     links: [{ label: '共有手順を確認', url: 'https://www.tp-link.com/jp/support/faq/2613/' }]
   }
@@ -133,13 +119,6 @@ function toggleTask(id) {
   render();
 }
 
-function doReset() {
-  if (!confirm('すべてのチェックをリセットしますか？')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  tasks = initialTaskData.map(t => ({ ...t }));
-  render();
-}
-
 // --- Render helpers ---
 function icon(name, cls = '', size = 16) {
   return `<i data-lucide="${name}" class="${cls}" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle;"></i>`;
@@ -157,7 +136,7 @@ function renderBadges(task) {
   if (task.completed) return '';
   let badges = '';
   if (task.isCritical) badges += `<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('alert-triangle','text-red-600',10)} 重要</span>`;
-  if (task.isConditional) badges += `<span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('bell','text-blue-600',10)} 案内待ち</span>`;
+  if (task.isConditional) badges += `<span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('bell','text-blue-600',10)} ご案内後</span>`;
   if (task.isOptional) badges += `<span class="bg-gray-200 text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">${icon('help-circle','text-gray-500',10)} 任意</span>`;
   return badges;
 }
@@ -180,7 +159,7 @@ function renderInquiryLinks(task) {
 function renderActionLinks(task) {
   if (!task.links || task.completed) return '';
   const links = task.links.map(l => {
-    const btnClass = task.isOptional ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-[#215387] text-white hover:bg-[#1a4270]';
+    const btnClass = task.isOptional ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-blue-600 text-white hover:bg-blue-700';
     const ico = (l.isApp || task.id === 5) ? icon('smartphone','',14) : icon('external-link','',12);
     return `<a href="${l.url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
       class="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-lg shadow-sm ${btnClass}">${ico} ${l.label}</a>`;
@@ -190,21 +169,21 @@ function renderActionLinks(task) {
 
 function renderTaskCard(task) {
   const checkIcon = task.completed
-    ? `<span class="text-green-500 shrink-0 mt-1">${icon('check-circle','text-green-500',22)}</span>`
-    : `<span class="${task.isConditional ? 'text-blue-200' : task.isOptional ? 'text-gray-300' : 'text-gray-400'} shrink-0 mt-1">${icon('circle','',22)}</span>`;
-  const titleClass = task.completed ? 'text-green-700 text-sm' : 'text-gray-800 text-sm';
+    ? `<span class="text-green-500 shrink-0 mt-1">${icon('check-circle','text-green-500',24)}</span>`
+    : `<span class="${task.isConditional ? 'text-blue-200' : task.isOptional ? 'text-gray-300' : 'text-gray-400'} shrink-0 mt-1">${icon('circle','',24)}</span>`;
+  const titleClass = task.completed ? 'text-green-700' : 'text-gray-800';
   const descClass = task.completed ? 'text-green-600/70' : 'text-gray-500';
 
   return `
-    <div class="task-card flex flex-col gap-2 p-3.5 rounded-xl border-2 mb-2.5 ${taskCardClass(task)}" data-id="${task.id}">
-      <div class="flex items-start gap-3 cursor-pointer" onclick="toggleTask(${task.id})">
+    <div class="task-card flex flex-col gap-2 p-4 rounded-2xl border-2 mb-3 ${taskCardClass(task)}" data-id="${task.id}">
+      <div class="flex items-start gap-4 cursor-pointer" onclick="toggleTask(${task.id})">
         ${checkIcon}
         <div class="flex-1">
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="flex flex-wrap items-center gap-2">
             <span class="font-bold ${titleClass}">${task.title}</span>
             ${renderBadges(task)}
           </div>
-          <p class="text-xs mt-0.5 leading-relaxed ${descClass}">${task.description}</p>
+          <p class="text-sm mt-1 leading-relaxed ${descClass}">${task.description}</p>
         </div>
       </div>
       ${renderInquiryLinks(task)}
@@ -212,16 +191,12 @@ function renderTaskCard(task) {
     </div>`;
 }
 
-function renderSection(phase, label, iconName, colorClass, borderClass, badgeColor) {
+function renderSection(phase, label, iconName, colorClass, borderClass) {
   const phaseTasks = tasks.filter(t => t.phase === phase);
-  const stepNum = String(phase).padStart(2, '0');
   return `
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="step-badge ${badgeColor}">STEP ${stepNum}</span>
-        <span class="font-bold text-base text-gray-700 flex items-center gap-1.5">
-          ${icon(iconName, colorClass, 18)} ${label}
-        </span>
+    <div class="mb-8">
+      <div class="flex items-center gap-2 mb-4 p-2 border-b-2 ${borderClass} ${colorClass} font-bold text-xl uppercase tracking-tighter">
+        ${icon(iconName, colorClass, 24)} ${label}
       </div>
       ${phaseTasks.map(renderTaskCard).join('')}
     </div>`;
@@ -234,56 +209,63 @@ function render() {
 
   const html = `
     <!-- ヘッダー -->
-    <div class="bg-white rounded-2xl px-5 py-4 shadow-sm mb-6 border border-gray-200 relative overflow-hidden">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="bg-[#215387] p-2 rounded-xl shrink-0">
-            ${icon('shield-check','text-white',20)}
-          </div>
-          <div>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">民泊管理バンク・ホスト様用タスク管理シート</p>
-            <div class="flex items-center gap-2 mt-0.5">
-              <div class="w-28 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full bg-[#215387] progress-bar rounded-full" style="width:${progress}%"></div>
-              </div>
-              <span class="text-sm font-black text-[#215387]">${progress}%</span>
-              <span class="text-[10px] text-gray-400">${completed} / ${total} 完了</span>
-            </div>
-          </div>
+    <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm mb-8 border border-gray-200 relative overflow-hidden">
+      <div class="absolute top-0 right-0 p-4">
+        <span class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full text-green-500 bg-green-50">
+          ${icon('cloud','text-green-500',12)} ローカル保存済
+        </span>
+      </div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 class="text-2xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
+            ${icon('shield-check','text-blue-600',28)} Tapoカメラ導入チェックリスト
+          </h1>
+          <p class="text-gray-500 mt-2 font-medium flex items-center gap-2">
+            ${icon('user-check','text-blue-400',16)} ホスト様用 進捗管理シート
+          </p>
         </div>
-        <button class="reset-btn" onclick="doReset()">
-          ${icon('rotate-ccw','',12)} リセット
-        </button>
+        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center min-w-[140px]">
+          <div class="text-[10px] font-black text-gray-400 mb-1 tracking-widest uppercase">Achievement</div>
+          <div class="flex items-center gap-3 justify-center">
+            <div class="w-20 h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+              <div class="h-full bg-blue-500 progress-bar rounded-full" style="width:${progress}%"></div>
+            </div>
+            <span class="text-2xl font-black text-blue-600 leading-none">${progress}%</span>
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1">${completed} / ${total} 完了</div>
+        </div>
       </div>
     </div>
 
     <!-- 重要警告 -->
-    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl mb-6 flex items-start gap-3 shadow-sm fade-in">
-      <div class="bg-red-500 p-1.5 rounded-lg shrink-0 mt-0.5">
-        ${icon('alert-triangle','text-white',16)}
+    <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-r-2xl mb-8 flex items-start gap-4 shadow-sm fade-in">
+      <div class="bg-red-500 p-1.5 rounded-lg shrink-0">
+        ${icon('alert-triangle','text-white',20)}
       </div>
-      <div>
-        <h3 class="font-bold text-red-900 text-sm">microSDカード 厳重警告</h3>
-        <p class="text-red-800 mt-0.5 text-xs leading-relaxed">
-          <strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは使用禁止です。互換性の問題により、機器を故障させる原因となります。
+      <div class="text-sm">
+        <h3 class="font-bold text-red-900">microSDカードの厳重警告</h3>
+        <p class="text-red-800 mt-1 leading-relaxed">
+          <strong>SAMSUNG Evo Plus</strong> および <strong>TOPESEL</strong> 製カードは、互換性の問題によりカードおよび本体を破損する恐れがあるため使用を禁止します。
         </p>
       </div>
     </div>
 
-    ${renderSection(1, '準備・機材調達・設置工事', 'shopping-cart', 'text-[#215387]', 'border-blue-200', 'bg-[#215387] text-white')}
-    ${renderSection(2, 'アプリ設定・カメラセットアップ', 'smartphone', 'text-purple-600', 'border-purple-200', 'bg-purple-600 text-white')}
-    ${renderSection(3, '運用開始・管理権限の設定', 'settings', 'text-emerald-600', 'border-emerald-200', 'bg-emerald-600 text-white')}
+    ${renderSection(1, 'Step 1: 物品のご準備・工事', 'shopping-cart', 'text-blue-600', 'border-blue-200')}
+    ${renderSection(2, 'Step 2: アプリ設定・設置', 'smartphone', 'text-purple-600', 'border-purple-200')}
+    ${renderSection(3, 'Step 3: 運用・管理の開始', 'settings', 'text-emerald-600', 'border-emerald-200')}
 
     <!-- 公式サポートリンク -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mt-8 mb-16">
-      <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-        ${icon('info','text-gray-400',16)} 公式サポートリンク
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mt-12 mb-20">
+      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+        ${icon('info','text-gray-400',20)} 公式サポートリンク
       </h2>
-      <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" rel="noopener noreferrer"
-         class="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50 hover:bg-blue-50 hover:border-blue-100 text-xs font-medium text-gray-600 hover:text-blue-700 transition-all hover:translate-x-1">
-        Tapoカメラ よくある質問 (FAQ)
-        ${icon('external-link','',13)}
-      </a>
+      <div class="grid grid-cols-1 gap-3">
+        <a href="https://www.tp-link.com/jp/support/faq/2742/" target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-between p-4 rounded-xl border border-gray-50 bg-gray-50 hover:bg-blue-50 hover:border-blue-100 text-sm font-medium text-gray-600 hover:text-blue-700 transition-all hover:translate-x-1">
+          Tapoカメラに関するよくある質問
+          ${icon('external-link','',14)}
+        </a>
+      </div>
     </div>
   `;
 
